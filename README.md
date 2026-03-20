@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Golden Flop — On-Chain Poker on Solana
+
+Real-time multiplayer poker on Solana. 6-player tables, provably fair, on-chain settlement.
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS v4 + custom CSS design tokens
+- **Animations:** GSAP + @gsap/react (entry sequences, idle floats, parallax tilt)
+- **Fonts:** Press Start 2P (pixel headings), Inter (body), Geist (system)
+- **Icons:** Lucide React, React Icons
+- **UI:** shadcn components, class-variance-authority, tailwind-merge
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── globals.css        # Design tokens, LED board effect, neon cards, glows
+│   ├── icon.png           # Favicon (golden spade)
+│   ├── layout.tsx          # Root layout with Geist font
+│   └── page.tsx            # Home page — assembles all sections
+├── components/
+│   ├── Header.tsx          # Fixed navbar with logo, socials, live badge, nav bg image
+│   ├── Hero.tsx            # Full-screen hero — LED board title, phone showcase, parallax
+│   ├── HowItWorks.tsx      # Step-by-step gameplay explanation
+│   ├── LiveTables.tsx      # Live table status display
+│   ├── TrustStrip.tsx      # Trust/partner logos strip
+│   ├── WhyGoldenFlop.tsx   # Feature highlights
+│   ├── Footer.tsx          # Copyright, legal links, social icons
+│   ├── Starfield.tsx       # Background star particle effect
+│   └── ui/
+│       └── button.tsx      # shadcn button component
+├── lib/
+│   └── utils.ts            # cn() utility (clsx + tailwind-merge)
+public/
+├── assets/                 # Poker props (cards, chips), backgrounds
+├── screenshots/            # App screenshots for phone showcase
+├── logo.png                # Golden spade logo
+└── icon.png                # App icon
+```
+
+## Design System
+
+- **Background:** Dark space theme (`#05070F`) with full-screen background image
+- **Accent colors:** Cyan (`#00F0FF`), Gold (`#FFC857` / `#F5C542`), Pink (`#FF4D9D`)
+- **Effects:** LED dot-matrix title, neon card borders, glow shadows, noise overlay
+- **Typography:** Pixel font for headings/labels, Inter for body text
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the site.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run start` | Serve production build |
+| `npm run lint` | Run ESLint |
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deploy on [Vercel](https://vercel.com) — zero config for Next.js projects.
