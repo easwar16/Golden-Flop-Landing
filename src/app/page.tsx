@@ -1,28 +1,25 @@
 "use client";
 
-import Navbar from "@/components/Navbar";
+import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Features from "@/components/Features";
-import HowItWorks from "@/components/HowItWorks";
-import GameplayPreview from "@/components/GameplayPreview";
-import TechTrust from "@/components/TechTrust";
-import FinalCTA from "@/components/FinalCTA";
+import Gameplay from "@/components/Gameplay";
+import Stats from "@/components/Stats";
+import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
-import CursorGlow from "@/components/CursorGlow";
 
 export default function Home() {
   return (
     <>
-      <CursorGlow />
+      <div className="site-bg" />
       <div className="noise-overlay" />
-      <Navbar />
+      <Header />
       <main>
         <Hero />
-        <Features />
-        <HowItWorks />
-        <GameplayPreview />
-        <TechTrust />
-        <FinalCTA />
+        {/* <Features />
+        <Gameplay />
+        <Stats />
+        <CTA /> */}
       </main>
       <Footer />
     </>

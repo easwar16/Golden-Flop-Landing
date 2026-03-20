@@ -1,35 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "Golden Flop — Real-time Poker on Solana",
-  description:
-    "Play multiplayer poker with bots and real players, powered by Solana. Provably fair, on-chain settlement, lightning-fast gameplay.",
-  keywords: ["poker", "solana", "blockchain", "multiplayer", "crypto", "web3"],
+  title: "Golden Flop — On-Chain Poker on Solana",
+  description: "Real-time multiplayer poker on Solana. 6-player tables, provably fair, on-chain settlement.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-    >
-      <body className="bg-[#0a0a0a] text-white">{children}</body>
+    <html lang="en" className={cn("font-sans", geist.variable)}>
+      <body>{children}</body>
     </html>
   );
 }

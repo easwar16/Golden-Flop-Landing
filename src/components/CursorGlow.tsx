@@ -10,7 +10,7 @@ export default function CursorGlow() {
     const glow = glowRef.current;
     if (!glow) return;
 
-    const onMouseMove = (e: MouseEvent) => {
+    const onMove = (e: MouseEvent) => {
       gsap.to(glow, {
         x: e.clientX,
         y: e.clientY,
@@ -19,24 +19,19 @@ export default function CursorGlow() {
       });
     };
 
-    const onMouseLeave = () => {
-      gsap.to(glow, { opacity: 0, duration: 0.3 });
-    };
+    const onLeave = () => gsap.to(glow, { opacity: 0, duration: 0.3 });
+    const onEnter = () => gsap.to(glow, { opacity: 1, duration: 0.3 });
 
-    const onMouseEnter = () => {
-      gsap.to(glow, { opacity: 1, duration: 0.3 });
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseleave", onMouseLeave);
-    document.addEventListener("mouseenter", onMouseEnter);
+    window.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseleave", onLeave);
+    document.addEventListener("mouseenter", onEnter);
 
     return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseleave", onMouseLeave);
-      document.removeEventListener("mouseenter", onMouseEnter);
+      window.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseleave", onLeave);
+      document.removeEventListener("mouseenter", onEnter);
     };
   }, []);
 
-  return <div ref={glowRef} className="cursor-glow hidden md:block" />;
+  return <div ref={glowRef} className="cursor-glow hidden lg:block" />;
 }

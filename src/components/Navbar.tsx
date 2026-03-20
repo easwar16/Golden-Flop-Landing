@@ -1,62 +1,115 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 
 export default function Navbar() {
-  const navRef = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  useGSAP(() => {
-    gsap.from(navRef.current, {
-      y: -80,
-      opacity: 0,
-      duration: 0.8,
-      ease: "power3.out",
-      delay: 0.2,
-    });
-  }, { scope: navRef });
+  useGSAP(
+    () => {
+      gsap.from(ref.current, {
+        y: -60,
+        opacity: 0,
+        duration: 0.7,
+        delay: 0.15,
+        ease: "power3.out",
+      });
+    },
+    { scope: ref }
+  );
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const fn = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
   }, []);
 
   return (
     <nav
-      ref={navRef}
+      ref={ref}
       className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
         scrolled
-          ? "bg-black/70 backdrop-blur-xl border-b border-white/5"
-          : "bg-transparent"
+          ? "bg-bg-dark/90 backdrop-blur-xl border-b border-cyan/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.3)]"
+          : ""
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <a href="#" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gold to-gold-light flex items-center justify-center">
-            <span className="text-black font-bold text-sm">GF</span>
-          </div>
-          <span className="text-lg font-semibold tracking-tight text-white">
-            Golden Flop
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+        {/* Logo */}
+        <a href="#" className="flex items-center gap-2.5 group">
+          <Image
+            src="/icon.png"
+            alt="Golden Flop"
+            width={34}
+            height={34}
+            className="rounded-lg group-hover:shadow-[0_0_15px_rgba(255,200,87,0.3)] transition-shadow duration-300"
+          />
+          <span className="t-label text-[10px] text-white glow-gold hidden sm:inline">
+            GOLDEN<span className="text-gold">FLOP</span>
           </span>
         </a>
 
-        <div className="hidden md:flex items-center gap-8 text-sm text-zinc-400">
-          <a href="#features" className="hover:text-white transition-colors">Features</a>
-          <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
-          <a href="#gameplay" className="hover:text-white transition-colors">Gameplay</a>
-          <a href="#tech" className="hover:text-white transition-colors">Technology</a>
+        {/* Desktop links */}
+        <div className="hidden md:flex items-center gap-8 text-sm text-[#9CA3AF]">
+          {["Features", "Gameplay", "Stats"].map((link) => (
+            <a
+              key={link}
+              href={`#${link.toLowerCase()}`}
+              className="hover:text-cyan transition-colors duration-200 relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-cyan after:transition-all after:duration-300 hover:after:w-full"
+            >
+              {link}
+            </a>
+          ))}
         </div>
 
-        <a
-          href="#cta"
-          className="px-5 py-2 rounded-full bg-gradient-to-r from-gold to-gold-light text-black text-sm font-semibold hover:shadow-[0_0_20px_rgba(212,168,67,0.4)] transition-shadow duration-300"
-        >
-          Play Now
-        </a>
+        {/* CTA + mobile toggle */}
+        <div className="flex items-center gap-3">
+          <a
+            href="#cta"
+            className="t-btn text-[10px] px-5 py-2.5 rounded-lg bg-cyan/[0.08] border border-cyan/20 text-cyan hover:bg-cyan/[0.15] hover:shadow-[0_0_25px_rgba(0,240,255,0.2)] transition-all duration-300 glow-cyan"
+          >
+            PLAY NOW
+          </a>
+
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden w-9 h-9 flex flex-col items-center justify-center gap-1.5"
+            aria-label="Menu"
+          >
+            <span
+              className={`block w-5 h-[1.5px] bg-cyan transition-all duration-300 ${
+                menuOpen ? "rotate-45 translate-y-[4px]" : ""
+              }`}
+            />
+            <span
+              className={`block w-5 h-[1.5px] bg-cyan transition-all duration-300 ${
+                menuOpen ? "-rotate-45 -translate-y-[2.5px]" : ""
+              }`}
+            />
+          </button>
+        </div>
       </div>
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="md:hidden bg-bg-dark/95 backdrop-blur-xl border-t border-cyan/[0.06] px-6 py-5 flex flex-col gap-4">
+          {["Features", "Gameplay", "Stats"].map((link) => (
+            <a
+              key={link}
+              href={`#${link.toLowerCase()}`}
+              className="text-sm text-[#9CA3AF] hover:text-cyan transition-colors"
+              onClick={() => setMenuOpen(false)}
+            >
+              {link}
+            </a>
+          ))}
+        </div>
+      )}
     </nav>
   );
 }
