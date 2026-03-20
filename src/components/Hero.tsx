@@ -1,263 +1,405 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 
 /* ═══════════════════════════════════════════════════════
-   HERO — cinematic full-screen, 5-layer depth composition
+   HERO — cinematic full-screen, layered depth composition
    ═══════════════════════════════════════════════════════ */
 export default function Hero() {
   const root = useRef<HTMLElement>(null);
+  const showcaseRef = useRef<HTMLDivElement>(null);
+  const isHovering = useRef(false);
+
+  // Smooth GSAP quickTo setters — created once in useGSAP
+  const phoneRotX = useRef<ReturnType<typeof gsap.quickTo> | null>(null);
+  const phoneRotY = useRef<ReturnType<typeof gsap.quickTo> | null>(null);
+  const midX = useRef<ReturnType<typeof gsap.quickTo> | null>(null);
+  const midY = useRef<ReturnType<typeof gsap.quickTo> | null>(null);
+  const frontX = useRef<ReturnType<typeof gsap.quickTo> | null>(null);
+  const frontY = useRef<ReturnType<typeof gsap.quickTo> | null>(null);
+  const glowOpacity = useRef<ReturnType<typeof gsap.quickTo> | null>(null);
 
   useGSAP(() => {
-    /* ── ENTRANCE TIMELINE ── */
-    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-
-    // Layer 1-2: ambient orbs fade in
-    tl.from(".orb", { opacity: 0, scale: 0.5, duration: 1.5, stagger: 0.2, ease: "power2.out" });
-
-    // Text content
-    tl.from(".title-line", { y: 70, opacity: 0, duration: 0.9, stagger: 0.12 }, 0.55);
-    tl.from(".subtitle", { y: 35, opacity: 0, duration: 0.65 }, "-=0.4");
-    tl.from(".desc", { y: 20, opacity: 0, duration: 0.5 }, "-=0.25");
-    tl.from(".cta-btn", { y: 25, opacity: 0, scale: 0.9, duration: 0.5, stagger: 0.12 }, "-=0.2");
-
-    // Layer 2: Far decorations (blurred, faint) pop in early
-    tl.from(".layer-far", { opacity: 0, scale: 0.3, duration: 0.8, stagger: 0.15, ease: "power2.out" }, 0.6);
-
-    // Layer 3: Phones slam up with spring
-    tl.from(".phone", {
-      y: 180, opacity: 0, scale: 0.6, duration: 1.3, stagger: 0.1, ease: "back.out(1.4)",
-    }, "-=0.7");
-
-    // Layer 4: Mid-foreground cards
-    tl.from(".layer-mid", {
-      opacity: 0, scale: 0, rotation: -20, duration: 0.6,
-      stagger: { amount: 0.5, from: "random" }, ease: "back.out(2)",
-    }, "-=0.5");
-
-    // Layer 5: Foreground chips (biggest impact, last to land)
-    tl.from(".layer-front", {
-      opacity: 0, scale: 0, y: 40, duration: 0.6,
-      stagger: { amount: 0.4, from: "random" }, ease: "back.out(2.5)",
-    }, "-=0.3");
-
-    /* ── IDLE FLOATING LOOPS ── */
-
-    // Phones — each at different speed/amplitude
-    gsap.to(".phone-center", { y: -16, duration: 4, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(".phone-left",   { y: -11, rotation: "+=1.5", duration: 3.4, repeat: -1, yoyo: true, ease: "sine.inOut", delay: 0.6 });
-    gsap.to(".phone-right",  { y: -14, rotation: "-=1.5", duration: 3.8, repeat: -1, yoyo: true, ease: "sine.inOut", delay: 1.1 });
-
-    // Foreground chips — big, slow float + spin
-    gsap.to(".layer-front", {
-      y: -12, rotation: 20, duration: 3.2, repeat: -1, yoyo: true,
-      ease: "sine.inOut", stagger: { amount: 2, from: "random" },
+    /* ══════════════════════════════════════════════════
+       CINEMATIC ENTRY SEQUENCE — "The game is loading"
+       Total: ~1200ms, feels like a polished game boot
+       ══════════════════════════════════════════════════ */
+    const entry = gsap.timeline({
+      defaults: { ease: "power2.out" },
+      onComplete: startIdleAnimations,
     });
 
-    // Mid cards — gentle drift
-    gsap.to(".layer-mid", {
-      y: -8, rotation: "-=5", duration: 3.8, repeat: -1, yoyo: true,
-      ease: "sine.inOut", stagger: { amount: 1.5, from: "random" },
-    });
+    // Step 1 — Background fade (0ms → 300ms)
+    entry.from(".hero-bg-layer", { opacity: 0.85, duration: 0.3, ease: "power1.inOut" }, 0);
+    entry.from(".orb", { opacity: 0, scale: 0.8, duration: 0.5, stagger: 0.1 }, 0);
 
-    // Far elements — barely perceptible drift
-    gsap.to(".layer-far", {
-      y: -4, rotation: 3, duration: 5, repeat: -1, yoyo: true,
-      ease: "sine.inOut", stagger: { amount: 2, from: "random" },
-    });
+    // Step 2 — Text reveal (150ms → 500ms)
+    entry.from(".title-line", { y: 10, opacity: 0, duration: 0.35 }, 0.15);
+    entry.from(".subtitle", { y: 10, opacity: 0, duration: 0.3 }, 0.25);
+    entry.from(".desc", { y: 8, opacity: 0, duration: 0.3 }, 0.35);
+    entry.from(".live-indicator", { opacity: 0, duration: 0.3 }, 0.3);
 
-    // Glow orbs breathe
-    gsap.to(".orb", {
-      scale: 1.15, opacity: 0.75, duration: 3.5, repeat: -1, yoyo: true,
-      ease: "sine.inOut", stagger: 1.2,
-    });
+    // Step 3 — CTA reveal (350ms → 700ms)
+    entry.from(".cta-btn", {
+      opacity: 0, scale: 0.95, duration: 0.35, stagger: 0.08,
+    }, 0.35);
 
-    // Primary CTA glow pulse
-    gsap.to(".cta-primary", {
-      boxShadow: "0 0 35px rgba(255,200,87,0.5), 0 0 80px rgba(255,200,87,0.15)",
-      duration: 2, repeat: -1, yoyo: true, ease: "sine.inOut",
-    });
+    // Step 4 — Phone entrance (400ms → 900ms)
+    entry.from(".phone", {
+      y: 40, opacity: 0, duration: 0.5, stagger: 0.06, ease: "power2.out",
+    }, 0.4);
+    // Phone glow fades in gradually
+    entry.from(".phone-backglow", { opacity: 0, scale: 0.8, duration: 0.6 }, 0.5);
+
+    // Step 5 — Secondary elements (600ms → 1100ms)
+    entry.from(".layer-mid", {
+      y: 10, opacity: 0, duration: 0.4,
+      stagger: { amount: 0.15, from: "random" },
+    }, 0.6);
+    entry.from(".layer-front", {
+      y: 10, opacity: 0, duration: 0.4,
+      stagger: { amount: 0.15, from: "random" },
+    }, 0.7);
+
+    // Glow activation — CTA glow comes last
+    entry.from(".cta-primary", {
+      boxShadow: "0 0 0px rgba(255,200,87,0), 0 0 0px rgba(255,200,87,0)",
+      duration: 0.4,
+    }, 0.8);
+
+    /* ══════════════════════════════════════════════════
+       IDLE STATE — begins after entry completes
+       ══════════════════════════════════════════════════ */
+    function startIdleAnimations() {
+      // Phones — slow float ±10px
+      gsap.to(".phone-center", { y: -10, duration: 5, repeat: -1, yoyo: true, ease: "sine.inOut" });
+      gsap.to(".phone-left", { y: -8, duration: 4.5, repeat: -1, yoyo: true, ease: "sine.inOut", delay: 0.8 });
+      gsap.to(".phone-right", { y: -9, duration: 4.8, repeat: -1, yoyo: true, ease: "sine.inOut", delay: 1.5 });
+
+      // Cards — slight rotation loop ±5deg
+      gsap.to(".layer-mid", {
+        rotation: "+=5", duration: 5, repeat: -1, yoyo: true,
+        ease: "sine.inOut", stagger: { amount: 1.5, from: "random" },
+      });
+
+      // Chips — very slow drift
+      gsap.to(".layer-front", {
+        y: -6, rotation: 3, duration: 6, repeat: -1, yoyo: true,
+        ease: "sine.inOut", stagger: { amount: 2, from: "random" },
+      });
+
+      // Orbs breathe
+      gsap.to(".orb", {
+        scale: 1.08, opacity: 0.65, duration: 5, repeat: -1, yoyo: true,
+        ease: "sine.inOut", stagger: 1.5,
+      });
+
+      // CTA pulse — gold glow every ~2.5s
+      gsap.to(".cta-primary", {
+        boxShadow: "0 0 30px rgba(255,200,87,0.5), 0 0 70px rgba(255,200,87,0.15)",
+        scale: 1.03, duration: 2.5, repeat: -1, yoyo: true, ease: "sine.inOut",
+      });
+
+      // Secondary CTA — subtle cyan pulse
+      gsap.to(".cta-secondary", {
+        boxShadow: "0 0 18px rgba(0,240,255,0.12), 0 0 40px rgba(0,240,255,0.04)",
+        duration: 2.5, repeat: -1, yoyo: true, ease: "sine.inOut",
+      });
+
+      // Neon flicker — very subtle opacity shimmer on cyan elements
+      gsap.to(".neon-flicker", {
+        opacity: 0.7, duration: 0.08, repeat: -1, yoyo: true,
+        ease: "steps(1)", repeatDelay: 3 + Math.random() * 4,
+      });
+    }
+
+    /* ── PARALLAX TILT — quickTo for 60fps smooth movement ── */
+    phoneRotX.current = gsap.quickTo(".phone-tilt-wrapper", "rotateX", { duration: 0.6, ease: "power2.out" });
+    phoneRotY.current = gsap.quickTo(".phone-tilt-wrapper", "rotateY", { duration: 0.6, ease: "power2.out" });
+    midX.current = gsap.quickTo(".layer-mid", "x", { duration: 0.8, ease: "power2.out" });
+    midY.current = gsap.quickTo(".layer-mid", "y", { duration: 0.8, ease: "power2.out" });
+    frontX.current = gsap.quickTo(".layer-front", "x", { duration: 1, ease: "power2.out" });
+    frontY.current = gsap.quickTo(".layer-front", "y", { duration: 1, ease: "power2.out" });
+    glowOpacity.current = gsap.quickTo(".phone-hover-glow", "opacity", { duration: 0.4, ease: "power2.out" });
+
+    // Set initial perspective + will-change
+    gsap.set(".phone-tilt-wrapper", { transformPerspective: 800, willChange: "transform" });
+    gsap.set(".layer-mid, .layer-front", { willChange: "transform" });
+    gsap.set(".phone-hover-glow", { opacity: 0 });
   }, { scope: root });
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const el = showcaseRef.current;
+    if (!el) return;
+    isHovering.current = true;
+
+    const rect = el.getBoundingClientRect();
+    // Normalized -1 to 1
+    const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+    const ny = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+
+    // Phones: tilt up to ±8deg
+    phoneRotX.current?.(-ny * 8);
+    phoneRotY.current?.(nx * 8);
+
+    // Cards: move opposite direction (parallax), medium intensity
+    midX.current?.(-nx * 12);
+    midY.current?.(-ny * 8);
+
+    // Chips: very subtle opposite drift
+    frontX.current?.(-nx * 6);
+    frontY.current?.(-ny * 4);
+
+    // Glow response
+    glowOpacity.current?.(1);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    isHovering.current = false;
+
+    // Smooth reset to center
+    phoneRotX.current?.(0);
+    phoneRotY.current?.(0);
+    midX.current?.(0);
+    midY.current?.(0);
+    frontX.current?.(0);
+    frontY.current?.(0);
+    glowOpacity.current?.(0);
+  }, []);
 
   return (
     <section
       ref={root}
       className="relative w-full min-h-screen flex items-center justify-center overflow-visible py-20"
     >
-      {/* ═══ LAYER 0: Transparent — site bg shows through ═══ */}
-
       {/* ═══ LAYER 1: Gradient overlays ═══ */}
-      <div className="absolute inset-0 z-[1] pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_70%_at_50%_45%,rgba(20,10,42,0.9),transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_30%_at_50%_90%,rgba(0,240,255,0.02),transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_35%_25%_at_75%_15%,rgba(255,200,87,0.015),transparent)]" />
+      <div className="hero-bg-layer absolute inset-0 z-1 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_45%,transparent_30%,rgba(5,7,15,0.95))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_70%_at_50%_45%,rgba(5,7,15,0.8),transparent)]" />
+        {/* Strong left-side darkening — quiet zone for text */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(5,7,15,0.97)_0%,rgba(5,7,15,0.9)_30%,rgba(5,7,15,0.5)_55%,transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_25%_at_50%_95%,rgba(0,240,255,0.015),transparent)]" />
       </div>
 
+      {/* ═══ LAYER 1b: Subtle pixel grid on left side — 4% opacity ═══ */}
+      <div className="absolute inset-0 z-1 pointer-events-none opacity-[0.04]"
+        style={{
+          backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+          maskImage: "linear-gradient(to right, black 0%, black 40%, transparent 60%)",
+          WebkitMaskImage: "linear-gradient(to right, black 0%, black 40%, transparent 60%)",
+        }} />
+
       {/* ═══ LAYER 2: Ambient glow orbs ═══ */}
-      <div className="absolute inset-0 z-[2] pointer-events-none">
-        <div className="orb absolute top-[18%] left-[12%] w-[320px] h-[320px] rounded-full bg-neon/[0.035] blur-[110px]" />
-        <div className="orb absolute bottom-[15%] right-[10%] w-[260px] h-[260px] rounded-full bg-pink/[0.04] blur-[100px]" />
-        <div className="orb absolute top-[40%] left-[50%] -translate-x-1/2 w-[450px] h-[450px] rounded-full bg-gold/[0.02] blur-[140px]" />
+      <div className="absolute inset-0 z-2 pointer-events-none">
+        <div className="orb absolute top-[20%] left-[35%] w-[250px] h-[250px] rounded-full bg-neon/[0.02] blur-[130px]" />
+        <div className="orb absolute bottom-[18%] right-[12%] w-[240px] h-[240px] rounded-full bg-pink/[0.03] blur-[110px]" />
+        <div className="orb absolute top-[42%] left-[55%] -translate-x-1/2 w-[400px] h-[400px] rounded-full bg-gold/[0.015] blur-[150px]" />
       </div>
 
       {/* ═══ LAYER 3: Main content ═══ */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
-        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-10">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
+        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
-          {/* ── LEFT: Text + CTAs ── */}
-          <div className="lg:flex-[1.2] text-left order-2 lg:order-1 max-w-xl space-y-4">
-            {/* Headline — pixel font ONLY here */}
-            <h1 className="title-line font-pixel text-[clamp(1.6rem,3.5vw,3rem)] uppercase leading-[1.1] tracking-[0.06em] text-[#FFD505] max-w-[500px]"
-              style={{ textShadow: "0 0 14px rgba(255,213,5,0.3), 0 0 40px rgba(255,213,5,0.1)" }}>
-              Golden Flop
-            </h1>
+          {/* ══ LEFT: Text + CTAs — left-aligned, max 640px ══ */}
+          <div className="lg:flex-[1.2] text-center lg:text-left order-2 lg:order-1 max-w-[700px] relative">
+            {/* Dark scrim — extends left for text contrast */}
 
-            {/* Subheading — Inter, split color */}
-            <p className="subtitle text-[clamp(0.85rem,1.6vw,1.1rem)] uppercase tracking-[0.14em] font-semibold leading-[1.4]"
-              style={{ fontFamily: "'Inter', sans-serif" }}>
-              <span className="text-white/60">On-Chain Poker </span>
-              <span className="text-neon"
-                style={{ textShadow: "0 0 8px rgba(0,240,255,0.3)" }}>
-                Experience
-              </span>
-            </p>
+            <div className="relative">
+              {/* [players online] → mb-16px */}
+              {/* <div className="live-indicator inline-flex items-center gap-2 mb-4">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute h-full w-full rounded-full opacity-60" style={{ backgroundColor: "#00FF88" }} />
+                  <span className="relative rounded-full h-2 w-2" style={{ backgroundColor: "#00FF88" }} />
+                </span>
+                <span className="text-[11px] font-medium tracking-wide" style={{ fontFamily: "'Inter', sans-serif", color: "#00FF88" }}>
+                  2,341 players online
+                </span>
+              </div> */}
 
-            {/* Description — Inter, readable, no pixel font */}
-            <p className="desc max-w-[480px] text-[14px] sm:text-[15px] leading-[1.7] text-white/70"
-              style={{ fontFamily: "'Inter', sans-serif" }}>
-              Real-time poker. On-chain. No delays. No house edge.
-            </p>
+              {/* [GOLDEN FLOP] → mb-24px */}
+              <div className="title-line mb-10 flex items-center justify-center">
+                <div className="led-board">
+                  <div className="led-board__text">
+                    <h1 className="led-board__inner font-pixel text-[clamp(1.6rem,3.5vw,3rem)] uppercase leading-[1.15] whitespace-nowrap tracking-[0.02em]">
+                      Golden Flop
+                    </h1>
+                  </div>
+                </div>
+              </div>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <a href="#cta"
-                className="cta-btn cta-primary group relative font-pixel text-[10px] uppercase tracking-[0.06em] px-9 py-[16px] rounded-xl bg-gradient-to-r from-gold via-[#FFE29A] to-gold text-bg-dark transition-all duration-300 hover:scale-105 text-center"
-                style={{ boxShadow: "0 0 20px rgba(255,200,87,0.3), 0 0 60px rgba(255,200,87,0.08)" }}>
-                Play Now
-                <span className="absolute inset-0 rounded-xl bg-white/0 group-hover:bg-white/10 transition-colors duration-200" />
-              </a>
-              <a href="#gameplay"
-                className="cta-btn group font-pixel text-[10px] uppercase tracking-[0.06em] px-9 py-[16px] rounded-xl border border-neon/25 bg-neon/[0.06] text-neon transition-all duration-300 hover:scale-105 hover:bg-neon/[0.12] hover:border-neon/40 text-center"
-                style={{ textShadow: "0 0 8px rgba(0,240,255,0.35)", boxShadow: "0 0 15px rgba(0,240,255,0.08)" }}>
-                Watch Gameplay
-              </a>
+              {/* [ON-CHAIN POKER EXPERIENCE] → mb-16px */}
+              <br />
+              <div className="subtitle mt-16 mb-6 text-[clamp(0.85rem,1.5vw,1.1rem)] uppercase tracking-[0.2em] font-semibold leading-[1.4] flex items-center justify-center gap-4">
+                <div className="text-[#A1A1AA]">On-Chain Poker</div>
+                <div className="neon-flicker text-[#F5C542] font-bold">
+                  Experience
+                </div>
+              </div>
+              <div className="flex flex-col items-center justify-center">
+                {/* [Main line] → mb-8px */}
+                {/* <br />
+                <br /> */}
+                <p className="desc ml-2 mt-4 mb-6 max-w-[480px] font-pixel text-[clamp(7px,2vw,10px)] leading-[2] font-medium text-[#E6E6E6] uppercase tracking-[0.04em]"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
+                    Deal yourself in
+                  {/* <div className="font-pixel mt-4 mb-18 max-w-[480px] text-[8px] text-neon">
+                    Funds stay in your wallet. Every hand is provable.
+                  </div> */}
+                </p>
+
+                {/* [Supporting line] → mb-32px */}
+
+
+                {/* [CTA buttons] */}
+                <div className="flex flex-col items-center lg:items-start">
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    {/* PRIMARY */}
+                    {/* <a href="#cta"
+                    className="cta-btn cta-primary group relative font-pixel text-[10px] uppercase tracking-[0.06em] rounded-xl bg-[#F5C542] text-[#05070F] font-bold transition-transform duration-200 hover:scale-105 active:scale-[0.96] text-center inline-block overflow-hidden"
+                    style={{ padding: "18px 48px", boxShadow: "0 4px 12px rgba(0,0,0,0.4), 0 0 20px rgba(245,197,66,0.15)" }}
+                    onMouseDown={(e) => {
+                      gsap.to(e.currentTarget, { scale: 0.96, duration: 0.1, ease: "power2.in" });
+                      gsap.to(e.currentTarget, { boxShadow: "0 2px 8px rgba(0,0,0,0.5), 0 0 25px rgba(245,197,66,0.25)", duration: 0.1 });
+                    }}
+                    onMouseUp={(e) => {
+                      gsap.to(e.currentTarget, { scale: 1, duration: 0.15, ease: "power2.out" });
+                      gsap.to(e.currentTarget, { boxShadow: "0 4px 12px rgba(0,0,0,0.4), 0 0 20px rgba(245,197,66,0.15)", duration: 0.3 });
+                    }}>
+                    Enter Table
+                    <span className="absolute inset-0 rounded-xl bg-white/0 group-hover:bg-white/10 transition-colors duration-200" />
+                  </a> */}
+
+                    {/* SECONDARY */}
+                    {/* <a href="#gameplay"
+                    className="cta-btn cta-secondary group relative font-pixel text-[9px] uppercase tracking-[0.06em] rounded-xl border border-neon/40 bg-neon/5 text-neon transition-transform duration-200 hover:scale-105 active:scale-[0.96] text-center inline-block"
+                    style={{ padding: "18px 40px" }}
+                    onMouseDown={(e) => {
+                      gsap.to(e.currentTarget, { scale: 0.96, duration: 0.1, ease: "power2.in" });
+                    }}
+                    onMouseUp={(e) => {
+                      gsap.to(e.currentTarget, { scale: 1, duration: 0.15, ease: "power2.out" });
+                    }}>
+                    Watch Gameplay
+                  </a> */}
+                  </div>
+
+                  {/* [microcopy] → mt-8px */}
+                  {/* <div className="mt-8 text-[11px] text-[#6B7280] font-medium tracking-wide" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    Start playing instantly
+                  </div> */}
+
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* ── RIGHT: 5-Layer phone showcase ── */}
-          <div className="flex-1 relative w-full min-h-[400px] sm:min-h-[480px] lg:min-h-[560px] xl:min-h-[600px] order-1 lg:order-2">
+          {/* ── RIGHT: Interactive phone showcase ── */}
+          <div
+            ref={showcaseRef}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            className="flex-1 relative w-full min-h-[400px] sm:min-h-[480px] lg:min-h-[560px] xl:min-h-[600px] order-1 lg:order-2"
+          >
+            {/* ─── LIGHTING ─── */}
+            <div className="absolute pointer-events-none z-5" style={{ top: "20%", left: "45%", transform: "translate(-50%, -50%)" }}>
+              <div className="w-[500px] h-[500px] rounded-full blur-[100px]"
+                style={{ background: "radial-gradient(ellipse at center, rgba(0,240,255,0.09) 0%, rgba(100,60,180,0.06) 40%, transparent 70%)" }} />
+            </div>
+            <div className="absolute inset-0 pointer-events-none z-5 bg-[linear-gradient(to_top_right,rgba(11,6,24,0.5)_0%,transparent_50%)]" />
 
-            {/* ─── LAYER 2: Far elements (low opacity, small, blurred) ─── */}
-
-            {/* Tiny card back — top-left corner, faded */}
-            <div className="layer-far absolute z-[5]" style={{ top: "5%", left: "5%" }}>
-              <Image src="/assets/card-back.png" alt="" width={60} height={85}
-                className="w-[30px] sm:w-[40px] md:w-[50px] h-auto -rotate-[25deg] opacity-30 blur-[1px]
-                  drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]" />
+            {/* ─── Hover glow — blooms on interaction ─── */}
+            <div className="phone-hover-glow absolute pointer-events-none z-8"
+              style={{ top: "45%", left: "50%", transform: "translate(-50%, -50%)", width: "350px", height: "450px", opacity: 0 }}>
+              <div className="w-full h-full rounded-[3rem] blur-[60px]"
+                style={{ background: "radial-gradient(ellipse at center, rgba(0,240,255,0.1) 0%, rgba(100,60,180,0.06) 50%, transparent 75%)" }} />
             </div>
 
-            {/* Tiny chip — top-right corner, faded */}
-            <div className="layer-far absolute z-[5]" style={{ top: "2%", right: "15%" }}>
-              <Image src="/assets/chip-stack.png" alt="" width={50} height={40}
-                className="w-[25px] sm:w-[35px] md:w-[45px] h-auto opacity-25 blur-[1px]
-                  drop-shadow-[0_4px_10px_rgba(0,240,255,0.1)]" />
-            </div>
+            {/* ─── Phone tilt wrapper — all 3 phones tilt together ─── */}
+            <div className="phone-tilt-wrapper absolute inset-0" style={{ transformStyle: "preserve-3d" }}>
 
-            {/* Tiny card back — far right edge, barely visible */}
-            <div className="layer-far absolute z-[5]" style={{ top: "65%", right: "0%" }}>
-              <Image src="/assets/card-back.png" alt="" width={45} height={65}
-                className="w-[22px] sm:w-[30px] md:w-[38px] h-auto rotate-[30deg] opacity-20 blur-[1.5px]" />
-            </div>
+              {/* Center phone */}
+              <div className="phone phone-center absolute z-30"
+                style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "clamp(170px, 22vw, 260px)" }}>
+                {/* Ground shadow — elliptical, grounding the phone */}
+                <div className="absolute pointer-events-none z-[-1]"
+                  style={{ bottom: "-12%", left: "50%", transform: "translateX(-50%)", width: "120%", height: "30px" }}>
+                  <div className="w-full h-full rounded-[50%] blur-[20px] opacity-40"
+                    style={{ background: "radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 50%, transparent 80%)" }} />
+                </div>
+                <div className="phone-backglow absolute -inset-10 rounded-[2.5rem] blur-[50px] pointer-events-none"
+                  style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(0,240,255,0.1), rgba(100,60,180,0.05) 60%, transparent)" }} />
+                <div className="relative rounded-[1.8rem] overflow-hidden"
+                  style={{
+                    boxShadow: "0 0 80px rgba(0,240,255,0.12), 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.3)",
+                    border: "1px solid rgba(0,240,255,0.12)"
+                  }}>
+                  <Image src="/screenshots/ss1.png" alt="Golden Flop — Go All In"
+                    width={400} height={800} className="w-full h-auto block" priority />
+                </div>
+              </div>
 
+              {/* Left phone */}
+              <div className="phone phone-left absolute z-20"
+                style={{ top: "46%", left: "6%", transform: "translateY(-50%) rotate(-9deg) scale(0.9)", width: "clamp(135px, 18vw, 215px)" }}>
+                <div className="rounded-3xl overflow-hidden opacity-75"
+                  style={{
+                    boxShadow: "0 25px 50px rgba(0,0,0,0.6), 2px 0 12px rgba(0,240,255,0.08)",
+                    border: "1px solid transparent",
+                    borderImage: "linear-gradient(to right, rgba(255,255,255,0.02), rgba(0,240,255,0.1)) 1"
+                  }}>
+                  <Image src="/screenshots/ss3.png" alt="The Table Is Set"
+                    width={400} height={800} className="w-full h-auto block" />
+                </div>
+              </div>
 
-            {/* ─── LAYER 3: Phones (main focus) ─── */}
-
-            {/* Center phone — ss1 "Go All In" (largest, sharpest) */}
-            <div className="phone phone-center absolute z-30"
-              style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "clamp(170px, 22vw, 260px)" }}>
-              <div className="rounded-[1.8rem] overflow-hidden border border-white/[0.07]"
-                style={{ boxShadow: "0 0 80px rgba(0,240,255,0.1), 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
-                <Image src="/screenshots/ss1.png" alt="Golden Flop — Go All In"
-                  width={400} height={800} className="w-full h-auto block" priority />
+              {/* Right phone */}
+              <div className="phone phone-right absolute z-20"
+                style={{ top: "48%", right: "3%", transform: "translateY(-50%) rotate(9deg) scale(0.85)", width: "clamp(135px, 18vw, 215px)" }}>
+                <div className="rounded-3xl overflow-hidden opacity-70"
+                  style={{
+                    boxShadow: "0 25px 50px rgba(0,0,0,0.6), -2px 0 12px rgba(0,240,255,0.08)",
+                    border: "1px solid transparent",
+                    borderImage: "linear-gradient(to left, rgba(255,255,255,0.02), rgba(0,240,255,0.1)) 1"
+                  }}>
+                  <Image src="/screenshots/ss4.png" alt="Your Seat Is Waiting"
+                    width={400} height={800} className="w-full h-auto block" />
+                </div>
               </div>
             </div>
 
-            {/* Left phone — ss3 "The Table Is Set" (slightly smaller, tilted, dimmer) */}
-            <div className="phone phone-left absolute z-20"
-              style={{ top: "46%", left: "8%", transform: "translateY(-50%) rotate(-7deg)", width: "clamp(135px, 18vw, 215px)" }}>
-              <div className="rounded-[1.5rem] overflow-hidden border border-white/[0.04] opacity-80"
-                style={{ boxShadow: "0 25px 50px rgba(0,0,0,0.55)" }}>
-                <Image src="/screenshots/ss3.png" alt="The Table Is Set"
-                  width={400} height={800} className="w-full h-auto block" />
-              </div>
-            </div>
-
-            {/* Right phone — ss4 "Your Seat Is Waiting" */}
-            <div className="phone phone-right absolute z-20"
-              style={{ top: "48%", right: "5%", transform: "translateY(-50%) rotate(7deg)", width: "clamp(135px, 18vw, 215px)" }}>
-              <div className="rounded-[1.5rem] overflow-hidden border border-white/[0.04] opacity-80"
-                style={{ boxShadow: "0 25px 50px rgba(0,0,0,0.55)" }}>
-                <Image src="/screenshots/ss4.png" alt="Your Seat Is Waiting"
-                  width={400} height={800} className="w-full h-auto block" />
-              </div>
-            </div>
-
-
-            {/* ─── LAYER 4: Mid-foreground cards (overlap phones, add depth) ─── */}
-
-            {/* Royal flush fan — behind right phone, partially overlapping */}
-            <div className="layer-mid absolute z-[15]" style={{ top: "8%", right: "2%" }}>
+            {/* ─── Mid-layer cards (move opposite to cursor) ─── */}
+            <div className="layer-mid absolute z-15" style={{ top: "10%", right: "4%" }}>
               <Image src="/assets/cards-fan.png" alt="" width={200} height={160}
-                className="w-[100px] sm:w-[130px] md:w-[170px] h-auto rotate-[12deg] opacity-70
+                className="w-[90px] sm:w-[120px] md:w-[160px] h-auto rotate-12 opacity-55 blur-[1px]
                   drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]" />
             </div>
-
-            {/* Ace of spades — bottom-left, partially behind left phone */}
-            <div className="layer-mid absolute z-[18]" style={{ bottom: "12%", left: "8%" }}>
+            <div className="layer-mid absolute z-18" style={{ bottom: "14%", left: "10%" }}>
               <Image src="/assets/card-ace.png" alt="" width={80} height={110}
-                className="w-[45px] sm:w-[60px] md:w-[80px] h-auto -rotate-[15deg]
+                className="w-[40px] sm:w-[55px] md:w-[70px] h-auto -rotate-15 blur-[1px]
                   drop-shadow-[0_8px_25px_rgba(0,0,0,0.5)]" />
             </div>
 
-            {/* King of hearts — top-left, between phones */}
-            <div className="layer-mid absolute z-[25]" style={{ top: "15%", left: "28%" }}>
-              <Image src="/assets/card-king.png" alt="" width={65} height={90}
-                className="w-[35px] sm:w-[45px] md:w-[60px] h-auto rotate-[20deg] opacity-75
-                  drop-shadow-[0_6px_20px_rgba(0,0,0,0.5)]" />
-            </div>
-
-
-            {/* ─── LAYER 5: Foreground chips (biggest, sharpest, strongest glow) ─── */}
-
-            {/* Large chip — bottom-right, closest to viewer */}
-            <div className="layer-front absolute z-[45]" style={{ bottom: "8%", right: "10%" }}>
+            {/* ─── Foreground chips (subtle opposite drift) ─── */}
+            <div className="layer-front absolute z-45" style={{ bottom: "10%", right: "12%" }}>
               <Image src="/assets/chip-large.png" alt="" width={120} height={90}
-                className="w-[60px] sm:w-[80px] md:w-[110px] h-auto
-                  drop-shadow-[0_0_25px_rgba(0,240,255,0.3)]" />
-            </div>
-
-            {/* Scattered chips — bottom-left, slightly smaller */}
-            <div className="layer-front absolute z-[45]" style={{ bottom: "15%", left: "2%" }}>
-              <Image src="/assets/chips-scattered.png" alt="" width={100} height={65}
-                className="w-[55px] sm:w-[70px] md:w-[95px] h-auto
+                className="w-[55px] sm:w-[75px] md:w-[100px] h-auto blur-[2px]
                   drop-shadow-[0_0_20px_rgba(0,240,255,0.25)]" />
             </div>
-
-            {/* Chip stack — top area, medium size (between foreground and mid) */}
-            <div className="layer-front absolute z-[40]" style={{ top: "10%", left: "18%" }}>
-              <Image src="/assets/chip-stack.png" alt="" width={70} height={50}
-                className="w-[35px] sm:w-[50px] md:w-[65px] h-auto
-                  drop-shadow-[0_0_15px_rgba(0,240,255,0.2)] opacity-85" />
+            <div className="layer-front absolute z-45" style={{ bottom: "16%", left: "4%" }}>
+              <Image src="/assets/chips-scattered.png" alt="" width={100} height={65}
+                className="w-[50px] sm:w-[65px] md:w-[85px] h-auto blur-[2px]
+                  drop-shadow-[0_0_18px_rgba(0,240,255,0.2)]" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* ═══ Top vignette only ═══ */}
-      <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-bg-dark/50 to-transparent z-20 pointer-events-none" />
+      {/* ═══ Top vignette ═══ */}
+      <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-bg-dark/60 to-transparent z-20 pointer-events-none" />
     </section>
   );
 }

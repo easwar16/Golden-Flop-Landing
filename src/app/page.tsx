@@ -2,10 +2,10 @@
 
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import Features from "@/components/Features";
-import Gameplay from "@/components/Gameplay";
-import Stats from "@/components/Stats";
-import CTA from "@/components/CTA";
+import TrustStrip from "@/components/TrustStrip";
+import HowItWorks from "@/components/HowItWorks";
+import WhyGoldenFlop from "@/components/WhyGoldenFlop";
+import LiveTables from "@/components/LiveTables";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -16,10 +16,10 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
-        {/* <Features />
-        <Gameplay />
-        <Stats />
-        <CTA /> */}
+        {/* <TrustStrip />
+        <LiveTables />
+        <HowItWorks />
+        <WhyGoldenFlop /> */}
       </main>
       <Footer />
     </>

@@ -12,7 +12,7 @@ export default function Starfield() {
     if (!ctx) return;
 
     let animationId: number;
-    const STAR_COUNT = 140;
+    const STAR_COUNT = 90;
     const stars: {
       x: number;
       y: number;
@@ -91,7 +91,7 @@ export default function Starfield() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 z-0 pointer-events-none"
-      style={{ opacity: 0.55 }}
+      style={{ opacity: 0.35 }}
     />
   );
 }
