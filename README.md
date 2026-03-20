@@ -2,7 +2,7 @@
 
 Real-time multiplayer poker on Solana. 6-player tables, provably fair, on-chain settlement.
 
-![Golden Flop Preview](https://github.com/user-attachments/assets/4269e4d5-3432-47d4-8c5d-c6152b5c5ad3)
+<video src="https://github.com/user-attachments/assets/4269e4d5-3432-47d4-8c5d-c6152b5c5ad3" autoplay loop muted playsinline></video>
 
 ## Tech Stack
 
