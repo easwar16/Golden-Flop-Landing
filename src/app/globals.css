@@ -7,7 +7,7 @@
 
 /* ═══ DESIGN TOKENS ═══ */
 :root {
-  --bg-dark: #0B0618;
+  --bg-dark: #05070F;
   --bg-deep: #140A2A;
   --cyan: #00F0FF;
   --gold: #FFC857;
@@ -49,7 +49,7 @@
 }
 
 @theme inline {
-  --color-bg-dark: #0B0618;
+  --color-bg-dark: #05070F;
   --color-bg-deep: #140A2A;
   --color-neon: #00F0FF;
   --color-gold: #FFC857;
@@ -118,8 +118,9 @@ body {
   position: fixed;
   inset: 0;
   z-index: 0;
-  background: url('/assets/bg.png') center center / cover no-repeat;
+  background: url('/assets/web_bg.png') center center / cover no-repeat;
   pointer-events: none;
+  opacity: 0.5;
 }
 
 /* ═══ TYPOGRAPHY ═══ */
@@ -189,6 +190,93 @@ body {
   pointer-events: none;
 }
 
+/* ═══ LED BOARD TEXT ═══ */
+.led-board {
+  --dot-size: 4px;
+  --hue: 40;
+  position: relative;
+  padding: 0.8rem 2rem;
+  line-height: 1;
+  overflow: hidden;
+  background: oklch(0.35 0.15 300 / 0.2);
+  filter: contrast(2) brightness(1.2) saturate(1.8);
+  transform: translateZ(0);
+  border-radius: 1rem;
+}
+
+.led-board::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  mix-blend-mode: plus-lighter;
+  filter: brightness(1.1);
+  background: radial-gradient(circle at center, hsl(0 0% 20%) 1px, transparent 4px) 50% 50% / var(--dot-size) var(--dot-size);
+  transform: translateZ(0);
+  pointer-events: none;
+}
+
+.led-board__text {
+  filter: blur(1px) contrast(1.2) brightness(1) saturate(1.6);
+  color: oklch(1 0.2393 var(--hue));
+  mask: radial-gradient(circle at center, #000 1px, #0000 1px) 50% 50% / var(--dot-size) var(--dot-size);
+  -webkit-mask: radial-gradient(circle at center, #000 1px, #0000 1px) 50% 50% / var(--dot-size) var(--dot-size);
+  transform: translateZ(0);
+}
+
+.led-board__inner {
+  filter: blur(2px) contrast(3) brightness(1.4);
+  color: oklch(1 0.2883 var(--hue));
+  text-shadow: 0 0 2px white;
+  transform: translateZ(0);
+}
+
+/* ═══ CTA RIPPLE ═══ */
+@keyframes cta-ripple {
+  0% { transform: scale(0.8); opacity: 0.2; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+.navbar {
+  position: relative;
+  backdrop-filter: blur(14px);
+  background: linear-gradient(
+    to bottom,
+    rgba(11, 6, 24, 0.85),
+    rgba(20, 10, 42, 0.65)
+  );
+  border-bottom: 1px solid rgba(0, 240, 255, 0.12);
+}
+
+/* subtle neon edge */
+.navbar::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 240, 255, 0.6),
+    transparent
+  );
+  filter: blur(1px);
+}
+
+/* soft glow behind navbar */
+.navbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% -20%,
+    rgba(0, 240, 255, 0.12),
+    transparent 60%
+  );
+  pointer-events: none;
+}
 /* ═══ SCROLLBAR ═══ */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg-dark); }
@@ -232,11 +320,5 @@ body {
 @layer base {
   * {
     @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
   }
 }
